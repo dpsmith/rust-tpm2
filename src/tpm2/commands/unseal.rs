@@ -1,7 +1,6 @@
 use crate::device;
 use crate::tcg;
-use crate::tpm2::commands::commands;
-use crate::tpm2::commands::run;
+use crate::tpm2::commands::{commands, run};
 use crate::tpm2::errors;
 use crate::tpm2::serialization::inout;
 use crate::tpm2::serialization::inout::Tpm2StructIn;
@@ -41,7 +40,7 @@ pub fn tpm2_unseal(
 
     let mut resp_buff = inout::StaticByteBuffer::new();
 
-    let ret = run::run_command(
+    run::run_command(
         tpm,
         tcg::TPM_CC_UNSEAL,
         &handles,

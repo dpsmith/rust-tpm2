@@ -1,19 +1,15 @@
 use crate::device;
-use crate::tpm2::commands::load;
-use crate::tpm2::commands::run;
-use crate::tpm2::commands::session;
-use crate::tpm2::commands::unseal;
-
+use crate::tpm2::commands::{load, run, session, unseal};
 use crate::tpm2::errors;
 use crate::tpm2::serialization::inout;
-use crate::tpm2::serialization::inout::RwBytes;
-use crate::tpm2::serialization::inout::Tpm2StructIn;
-use crate::tpm2::serialization::inout::Tpm2StructOut;
+use crate::tpm2::serialization::inout::{RwBytes, Tpm2StructIn, Tpm2StructOut};
 use crate::tpm2::types::tcg;
+
+use std::result;
+
 use pem::parse;
 use rsa;
 use rsa::pkcs8::DecodePublicKey;
-use std::result;
 
 const SAMPLE: &'static str = "
 -----BEGIN PUBLIC KEY-----
@@ -36,7 +32,7 @@ pub fn tpm2_import(
     let pem_result = parse(SAMPLE);
     match pem_result {
         Ok(_) => (),
-        Err(err) => panic!("pem error"),
+        Err(_) => panic!("pem error"),
     }
     let pem = pem_result.unwrap();
     println!("{}", pem.tag());
@@ -44,7 +40,7 @@ pub fn tpm2_import(
     let public_key_result = rsa::RsaPublicKey::from_public_key_pem(SAMPLE);
     match public_key_result {
         Ok(_) => (),
-        Err(rr) => panic!("pem error"),
+        Err(_) => panic!("pem error"),
     }
     let public_key = public_key_result.unwrap();
 
@@ -100,7 +96,7 @@ pub fn tpm2_import(
         &tcg::TpmtSymDefObject::new_null(),
     ];
 
-    let ret = run::run_command(
+    run::run_command(
         tpm,
         tcg::TPM_CC_IMPORT,
         &handles,
@@ -113,7 +109,7 @@ pub fn tpm2_import(
     param_size.unpack(&mut resp_buff)?;
 
     let mut out_private: tcg::Tpm2bPrivate = tcg::Tpm2bPrivate::new();
-    out_private.unpack(&mut resp_buff);
+    out_private.unpack(&mut resp_buff)?;
 
     session::tpm2_policy_secret(tpm, 0x4000000B, auth)?;
 
@@ -129,7 +125,7 @@ pub fn tpm2_import(
     )?;
 
     // This is unnecessary. Just use emptyAuth
-    let unseal_session = session::tpm2_startauth_session(tpm);
+    session::tpm2_startauth_session(tpm)?;
 
     let data = unseal::tpm2_unseal(tpm, loaded_handle)?;
     Ok(data)

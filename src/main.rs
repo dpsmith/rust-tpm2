@@ -1,14 +1,11 @@
 //mod crypto;
 mod device;
 mod tpm2;
-use device::raw;
-use device::tcp;
+use device::{raw, tcp};
 use tcg::Handle;
 use tpm2::commands::import;
-use tpm2::commands::pcrs::PCRSelection;
-use tpm2::commands::pcrs::MAX_PCR;
-use tpm2::commands::session;
-use tpm2::commands::startup;
+use tpm2::commands::pcrs::{PCRSelection, MAX_PCR};
+use tpm2::commands::{session, startup};
 use tpm2::types::tcg;
 
 #[macro_use]

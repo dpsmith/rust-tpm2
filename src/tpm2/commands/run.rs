@@ -2,10 +2,7 @@ use crate::device;
 use crate::tcg;
 use crate::tpm2::errors;
 use crate::tpm2::serialization::inout;
-
-use crate::tpm2::serialization::inout::RwBytes;
-use crate::tpm2::serialization::inout::Tpm2StructIn;
-use crate::tpm2::serialization::inout::Tpm2StructOut;
+use crate::tpm2::serialization::inout::{RwBytes, Tpm2StructIn, Tpm2StructOut};
 
 use std::mem;
 use std::result;
