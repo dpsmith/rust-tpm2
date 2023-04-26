@@ -2,8 +2,7 @@ use crate::device;
 use crate::tpm2::commands::run;
 use crate::tpm2::errors;
 use crate::tpm2::serialization::inout;
-use crate::tpm2::serialization::inout::Tpm2StructIn;
-use crate::tpm2::serialization::inout::Tpm2StructOut;
+use crate::tpm2::serialization::inout::{Tpm2StructIn, Tpm2StructOut};
 use crate::tpm2::types::tcg;
 use std::result;
 
@@ -54,7 +53,7 @@ pub fn tpm2_startauth_session(
         &tcg::TPM_ALG_SHA256,
     ];
 
-    let ret = run::run_command(
+    run::run_command(
         tpm,
         tcg::TPM_START_AUTH_SESSION,
         &handles,
@@ -111,7 +110,7 @@ pub fn tpm2_policy_secret(
 
     let mut resp_buff = inout::StaticByteBuffer::new();
 
-    let ret = run::run_command(
+    run::run_command(
         tpm,
         tcg::TPM_CC_POLICY_SECRET,
         &handles,

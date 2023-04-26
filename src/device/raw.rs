@@ -1,6 +1,5 @@
 use crate::tpm2::serialization::inout;
-use std::fs::File;
-use std::fs::OpenOptions;
+use std::fs::{File, OpenOptions};
 use std::io;
 use std::io::{Error, ErrorKind};
 use std::result;

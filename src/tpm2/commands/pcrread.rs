@@ -1,18 +1,13 @@
 use crate::device;
-use crate::tpm2::commands::commands::CommandHeader;
-use crate::tpm2::commands::commands::ResponseHeader;
-use crate::tpm2::commands::pcrs::PCRSelection;
-use crate::tpm2::commands::pcrs::PlatformConfigurationRegisters;
-use crate::tpm2::commands::pcrs::MAX_PCR;
+use crate::tpm2::commands::commands::{CommandHeader, ResponseHeader};
+use crate::tpm2::commands::pcrs::{PCRSelection, PlatformConfigurationRegisters, MAX_PCR};
 use crate::tpm2::commands::run;
 use crate::tpm2::errors;
 use crate::tpm2::serialization::inout;
-use crate::tpm2::serialization::inout::RwBytes;
-use crate::tpm2::serialization::inout::Tpm2StructIn;
-use crate::tpm2::serialization::inout::Tpm2StructOut;
+use crate::tpm2::serialization::inout::{RwBytes, Tpm2StructIn, Tpm2StructOut};
 use crate::tpm2::types::tcg;
-use std::mem;
-use std::result;
+
+use std::{mem, result};
 
 // TPM2_PCR_Read command
 #[derive(Copy, Clone, Debug)]
@@ -176,7 +171,7 @@ pub fn tpm2_pcr_read(
                 let auth: [tcg::TpmsAuthCommand; 0] = [];
                 let handle: [tcg::Handle; 0] = [];
 
-                let ret = run::run_command(
+                run::run_command(
                     tpm,
                     tcg::TPM_START_AUTH_SESSION,
                     &handle,

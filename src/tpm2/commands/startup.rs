@@ -15,7 +15,7 @@ pub fn tpm2_startup(
     let auth: [tcg::TpmsAuthCommand; 0] = [];
     let handles: [tcg::Handle; 0] = [];
     let mut resp_buff = inout::StaticByteBuffer::new();
-    let ret = run_command(
+    run_command(
         tpm,
         tcg::TPM_START_AUTH_SESSION,
         &handles,

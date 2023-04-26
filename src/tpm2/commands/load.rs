@@ -26,7 +26,7 @@ pub fn tpm2_load(
 
     let mut resp_buff = inout::StaticByteBuffer::new();
 
-    let ret = run::run_command(
+    run::run_command(
         tpm,
         tcg::TPM_CC_LOAD,
         &handles,

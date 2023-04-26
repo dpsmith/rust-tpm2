@@ -4,9 +4,10 @@ use crate::tpm2::errors;
 use crate::tpm2::serialization::inout;
 use crate::tpm2::serialization::inout::Tpm2StructOut;
 use crate::tpm2::types::tcg;
+
+use std::{mem, result};
+
 use bytebuffer::ByteBuffer;
-use std::mem;
-use std::result;
 
 // tpm2_pcr_read calls tpm2_pcr_read function returning the content of all
 // PCR Registers in SHA1 and SHA256 form.

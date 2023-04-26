@@ -1,30 +1,24 @@
 use crate::tpm2::errors;
-use std::mem;
-use std::result;
-
 use crate::tpm2::serialization::inout;
-use crate::tpm2::serialization::inout::RwBytes;
+use crate::tpm2::serialization::inout::{RwBytes, Tpm2StructOut};
+
+use std::{mem, result, fmt, str};
 
 use aes;
-use aes::cipher::AsyncStreamCipher;
-use aes::cipher::KeyIvInit;
+use aes::cipher::{AsyncStreamCipher, KeyIvInit};
 
 use byteorder::{BigEndian, ByteOrder};
 
-use crate::tpm2::serialization::inout::Tpm2StructOut;
 use sha2::{Digest, Sha256};
 
 use hmac::{Hmac, Mac};
 
 use num_traits::ToPrimitive;
-use std::fmt;
-use std::str;
 
 use rand;
+
 use rsa;
-use rsa::Oaep;
-use rsa::PublicKey;
-use rsa::PublicKeyParts;
+use rsa::{Oaep, PublicKey, PublicKeyParts};
 
 // Types
 pub type TpmiStCommandTag = u16;
@@ -402,15 +396,15 @@ pub fn get_name(public: TpmtPublic) -> [u8; 34] {
 pub fn kdfa(
     key: &[u8],
     label: &[u8],
-    contextU: &[u8],
-    contextV: &[u8],
+    context_u: &[u8],
+    context_v: &[u8],
     bits: u32,
 ) -> result::Result<inout::StaticByteBuffer, errors::TpmError> {
     let bytes = (bits + 7) / 8;
 
     let mut counter: u32 = 1;
 
-    let mut buff4B = [0; 4];
+    let mut buff_4b = [0; 4];
 
     // TODO: this should not be hardcoded
     type HmacSha256 = Hmac<Sha256>;
@@ -420,17 +414,17 @@ pub fn kdfa(
     while buff.to_bytes().len() < bytes as usize {
         let mut mac = HmacSha256::new_from_slice(key).expect("could not create HMAC");
 
-        BigEndian::write_u32(&mut buff4B, counter);
-        mac.update(&buff4B);
+        BigEndian::write_u32(&mut buff_4b, counter);
+        mac.update(&buff_4b);
 
         mac.update(label);
         mac.update(&[0x0]);
-        mac.update(contextU);
-        mac.update(contextV);
+        mac.update(context_u);
+        mac.update(context_v);
 
-        buff4B.fill(0);
-        BigEndian::write_u32(&mut buff4B, bits);
-        mac.update(&buff4B);
+        buff_4b.fill(0);
+        BigEndian::write_u32(&mut buff_4b, bits);
+        mac.update(&buff_4b);
 
         let result = mac.finalize();
         buff.write_bytes(&result.into_bytes());
@@ -439,9 +433,9 @@ pub fn kdfa(
     let out: &[u8] = &buff.to_bytes()[0..bytes as usize];
 
     let mut key = inout::StaticByteBuffer::new();
-    let maskBits = bits % 8;
-    if maskBits > 0 {
-        key.write_bytes(&[out[0] & (1 << maskBits) - 1]);
+    let mask_bits = bits % 8;
+    if mask_bits > 0 {
+        key.write_bytes(&[out[0] & (1 << mask_bits) - 1]);
         key.write_bytes(&out[1..]);
     } else {
         key.write_bytes(out);
@@ -545,7 +539,7 @@ impl Tpm2bPrivate {
                 key.clone_from_slice(res.to_bytes());
                 println!("key is {:x?}", key);
             }
-            Err(err) => {
+            Err(_) => {
                 panic!("error while calculating key");
             }
         }
@@ -574,7 +568,7 @@ impl Tpm2bPrivate {
                 mac_key.clone_from_slice(res.to_bytes());
                 println!("key is {:x?}", key);
             }
-            Err(err) => {
+            Err(_) => {
                 panic!("error while calculating key");
             }
         }
@@ -694,7 +688,7 @@ impl inout::Tpm2StructOut for TpmuSensitiveComposite {
     fn pack(&self, buff: &mut dyn inout::RwBytes) {
         match *self {
             TpmuSensitiveComposite::Bits(value) => value.pack(buff),
-            other => {
+            _ => {
                 panic!("cannot serialize TpmuSensitiveComposite")
             }
         }
@@ -789,7 +783,7 @@ impl inout::Tpm2StructOut for TpmuPublicId {
             TpmuPublicId::Rsa(value) => {
                 value.pack(buff);
             }
-            other => {
+            _ => {
                 panic!("cannot serialize TpmuPublicId");
             }
         }
@@ -907,7 +901,7 @@ impl inout::Tpm2StructOut for TpmuSchemeKeyedHash {
             TpmuSchemeKeyedHash::Xor(value) => {
                 value.pack(buff);
             }
-            other => {}
+            _ => {}
         }
     }
 }
@@ -1204,7 +1198,7 @@ impl inout::Tpm2StructOut for TpmuPublicParms {
             TpmuPublicParms::KeyedHashDetail(params) => {
                 params.pack(buff);
             }
-            other => {
+            _ => {
                 panic!("cannot serialize KeyedHashDetail");
             }
         }
@@ -1222,12 +1216,12 @@ pub struct TpmtPublic {
     unique: TpmuPublicId,
 }
 
-pub fn newDefaultEkAttributes() -> TpmaObject {
+pub fn new_default_ek_attributes() -> TpmaObject {
     // This is FlagUserWithAuth in go-tpm implementation
     0x00000040
 }
 
-pub fn newDefaultEkAuthPolicy() -> Tpm2bDigest {
+pub fn new_default_ek_auth_policy() -> Tpm2bDigest {
     Tpm2bDigest::new()
 }
 
@@ -1248,8 +1242,8 @@ impl TpmtPublic {
         TpmtPublic {
             type_alg: TPM_ALG_RSA,
             name_alg: TPM_ALG_SHA256,
-            object_attributes: newDefaultEkAttributes(),
-            auth_policy: newDefaultEkAuthPolicy(),
+            object_attributes: new_default_ek_attributes(),
+            auth_policy: new_default_ek_auth_policy(),
             parameters: TpmuPublicParms::new_rsa_public_params(key),
             unique: TpmuPublicId::new_rsa(key),
         }
@@ -1273,7 +1267,7 @@ impl TpmtPublic {
             TpmuSensitiveComposite::Bits(value) => {
                 hasher.update(&value.buffer[0..value.size as usize]);
             }
-            other => {
+            _ => {
                 panic!("cannot create new data object with this sensitive type");
             }
         }
@@ -1284,9 +1278,9 @@ impl TpmtPublic {
             type_alg: TPM_ALG_KEYEDHASH,
             name_alg: TPM_ALG_SHA256,
             // Clear all attributes for Data object
-            object_attributes: newDefaultEkAttributes(),
+            object_attributes: new_default_ek_attributes(),
             // Empty auth policy
-            auth_policy: newDefaultEkAuthPolicy(),
+            auth_policy: new_default_ek_auth_policy(),
             // The TPMT_PUBLIC blob is of type TPM_ALG_KEYEDHASH and holds
             // a TPMS_KEYEDHASH_PARMS data structure
             parameters: TpmuPublicParms::new_keyed_hash_parms(),
