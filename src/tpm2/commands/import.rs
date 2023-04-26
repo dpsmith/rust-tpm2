@@ -1,5 +1,4 @@
 use crate::device;
-use crate::tpm2::commands::commands;
 use crate::tpm2::commands::load;
 use crate::tpm2::commands::run;
 use crate::tpm2::commands::session;
@@ -40,7 +39,7 @@ pub fn tpm2_import(
         Err(err) => panic!("pem error"),
     }
     let pem = pem_result.unwrap();
-    println!("{}", pem.tag);
+    println!("{}", pem.tag());
 
     let public_key_result = rsa::RsaPublicKey::from_public_key_pem(SAMPLE);
     match public_key_result {

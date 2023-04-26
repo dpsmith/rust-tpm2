@@ -7,7 +7,7 @@ use crate::tpm2::types::tcg;
 use std::result;
 
 pub fn tpm2_startup(
-    tpm: &mut device::raw::TpmDeviceOps,
+    tpm: &mut dyn device::raw::TpmDeviceOps,
     startup_type: tcg::TpmSu,
 ) -> result::Result<(), errors::CommandError> {
     let params: [&dyn inout::Tpm2StructOut; 1] = [&startup_type];

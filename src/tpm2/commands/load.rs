@@ -1,6 +1,5 @@
 use crate::device;
 use crate::tcg;
-use crate::tpm2::commands::commands;
 use crate::tpm2::commands::run;
 use crate::tpm2::errors;
 use crate::tpm2::serialization::inout;

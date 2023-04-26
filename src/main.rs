@@ -1,4 +1,4 @@
-mod crypto;
+//mod crypto;
 mod device;
 mod tpm2;
 use device::raw;
