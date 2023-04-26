@@ -11,11 +11,11 @@ use std::mem;
 use std::result;
 
 pub fn run_command(
-    tpm: &mut device::raw::TpmDeviceOps,
+    tpm: &mut dyn device::raw::TpmDeviceOps,
     command_code: tcg::TpmCc,
     handles: &[tcg::Handle],
     auths: &[tcg::TpmsAuthCommand],
-    params: &[&inout::Tpm2StructOut],
+    params: &[&dyn inout::Tpm2StructOut],
     response: &mut dyn inout::RwBytes,
 ) -> result::Result<(), errors::CommandError> {
     //

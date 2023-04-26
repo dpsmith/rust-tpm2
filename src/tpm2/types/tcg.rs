@@ -6,7 +6,8 @@ use crate::tpm2::serialization::inout;
 use crate::tpm2::serialization::inout::RwBytes;
 
 use aes;
-use aes::cipher::{AsyncStreamCipher, KeyIvInit};
+use aes::cipher::AsyncStreamCipher;
+use aes::cipher::KeyIvInit;
 
 use byteorder::{BigEndian, ByteOrder};
 
@@ -21,7 +22,7 @@ use std::str;
 
 use rand;
 use rsa;
-use rsa::PaddingScheme;
+use rsa::Oaep;
 use rsa::PublicKey;
 use rsa::PublicKeyParts;
 
@@ -523,7 +524,7 @@ impl Tpm2bPrivate {
         //printl0n!("Label is {:02x?}", label_str);
         println!("Encrypting with parent {:02x?}", parent);
 
-        let padding = PaddingScheme::new_oaep_with_label::<sha2::Sha256, &str>("DUPLICATE\0");
+        let padding = Oaep::new_with_label::<sha2::Sha256, &str>("DUPLICATE\0");
         let enc_seed = parent
             .encrypt(&mut rng, padding, &seed[..])
             .expect("failed to encrypt");

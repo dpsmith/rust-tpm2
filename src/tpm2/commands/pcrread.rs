@@ -131,7 +131,7 @@ impl PcrReadResponse {
 }
 
 pub fn tpm2_pcr_read(
-    tpm: &mut device::raw::TpmDeviceOps,
+    tpm: &mut dyn device::raw::TpmDeviceOps,
     selection: &[PCRSelection],
 ) -> result::Result<PlatformConfigurationRegisters, errors::CommandError> {
     let mut all_pcrs: PlatformConfigurationRegisters = PlatformConfigurationRegisters::new();
@@ -172,7 +172,7 @@ pub fn tpm2_pcr_read(
                 };
 
                 let mut resp_buffer = inout::StaticByteBuffer::new();
-                let params: [&inout::Tpm2StructOut; 1] = [&pcr_selection];
+                let params: [&dyn inout::Tpm2StructOut; 1] = [&pcr_selection];
                 let auth: [tcg::TpmsAuthCommand; 0] = [];
                 let handle: [tcg::Handle; 0] = [];
 
