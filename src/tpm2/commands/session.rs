@@ -3,6 +3,7 @@ use crate::tpm2::commands::run;
 use crate::tpm2::errors;
 use crate::tpm2::serialization::inout;
 use crate::tpm2::serialization::inout::{Tpm2StructIn, Tpm2StructOut};
+use crate::tpm2::types::constants::TpmAlgId;
 use crate::tpm2::types::tcg;
 use std::result;
 
@@ -50,7 +51,7 @@ pub fn tpm2_startauth_session(
         &tcg::Tpm2bEncryptedSecret::new(),
         &tcg::TPM_SE_POLICY,
         &tcg::TpmtSymDef::new_null(),
-        &tcg::TPM_ALG_SHA256,
+        &TpmAlgId::SHA256,
     ];
 
     run::run_command(

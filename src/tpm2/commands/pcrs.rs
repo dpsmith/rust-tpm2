@@ -1,4 +1,4 @@
-use crate::tpm2::types::tcg;
+use crate::tpm2::types::constants::TpmAlgId;
 use std::collections::HashMap;
 use std::ops::Index;
 
@@ -52,7 +52,7 @@ impl std::fmt::Display for PCRValues {
 // PlatformConfigurationRegisters represents a set of multi-algorithm PCR values
 #[derive(Debug)]
 pub struct PlatformConfigurationRegisters {
-    pcrs: HashMap<tcg::TpmAlgId, PCRValues>,
+    pcrs: HashMap<TpmAlgId, PCRValues>,
 }
 
 // PlatformConfigurationRegisters represents a set of multi-algorithm PCR values
@@ -63,7 +63,7 @@ impl PlatformConfigurationRegisters {
         }
     }
 
-    pub fn add(&mut self, algo: tcg::TpmAlgId, pcr_num: u32, value: Vec<u8>) {
+    pub fn add(&mut self, algo: TpmAlgId, pcr_num: u32, value: Vec<u8>) {
         if !self.pcrs.contains_key(&algo) {
             self.pcrs.insert(algo, PCRValues::new());
         }
@@ -76,11 +76,11 @@ impl PlatformConfigurationRegisters {
         }
     }
 
-    pub fn get_map(&self) -> &HashMap<tcg::TpmAlgId, PCRValues> {
+    pub fn get_map(&self) -> &HashMap<TpmAlgId, PCRValues> {
         &self.pcrs
     }
 
-    pub fn merge(&mut self, map: &HashMap<tcg::TpmAlgId, PCRValues>) {
+    pub fn merge(&mut self, map: &HashMap<TpmAlgId, PCRValues>) {
         for algo in map.keys() {
             if self.pcrs.contains_key(algo) {
                 if let Some(pcr_values) = self.pcrs.get_mut(algo) {
@@ -111,14 +111,14 @@ impl std::fmt::Display for PlatformConfigurationRegisters {
 // PCRSelection represents a selection of PCR registers to manipulate with TPM commands
 #[derive(Debug)]
 pub struct PCRSelection {
-    algorithm: tcg::TpmAlgId,
+    algorithm: TpmAlgId,
     pcrs: Vec<u8>,
 }
 
 impl PCRSelection {
     pub fn new(pcrs: Vec<u8>) -> Self {
         PCRSelection {
-            algorithm: tcg::TPM_ALG_SHA256,
+            algorithm: TpmAlgId::SHA256,
             pcrs: pcrs,
         }
     }
@@ -127,7 +127,7 @@ impl PCRSelection {
         &self.pcrs
     }
 
-    pub fn get_algo(&self) -> tcg::TpmAlgId {
+    pub fn get_algo(&self) -> TpmAlgId {
         self.algorithm
     }
 }
