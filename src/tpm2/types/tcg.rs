@@ -1,6 +1,7 @@
 use crate::tpm2::errors;
 use crate::tpm2::serialization::inout;
 use crate::tpm2::serialization::inout::{RwBytes, Tpm2StructOut};
+use crate::tpm2::types::constants::TpmAlgId;
 
 use std::{mem, result, fmt, str};
 
@@ -24,7 +25,6 @@ use rsa::{Oaep, PublicKey, PublicKeyParts};
 pub type TpmiStCommandTag = u16;
 pub type TpmCc = u32;
 pub type TpmRc = u32;
-pub type TpmAlgId = u16;
 pub type TpmSu = u16;
 pub type TpmaObject = u32;
 pub type TpmaSession = u8;
@@ -84,17 +84,6 @@ pub const TPM_SU_STATE: TpmSu = 0x0001;
 // Command tags
 pub const TPM_ST_NO_SESSION: TpmiStCommandTag = 0x8001;
 pub const TPM_ST_SESSIONS: TpmiStCommandTag = 0x8002;
-
-// Algorithms
-pub const TPM_ALG_NULL: TpmAlgId = 0x0010;
-pub const TPM_ALG_SHA256: TpmAlgId = 0x000B;
-pub const TPM_ALG_KEYEDHASH: TpmAlgId = 0x0008;
-pub const TPM_ALG_SYMCIPHER: TpmAlgId = 0x0025;
-pub const TPM_ALG_RSA: TpmAlgId = 0x0001;
-pub const TPM_ALG_RSASSA: TpmAlgId = 0x0014;
-pub const TPM_ALG_ECC: TpmAlgId = 0x0023;
-pub const TPM_ALG_AES: TpmAlgId = 0x0006;
-pub const TPM_ALG_CFB: TpmAlgId = 0x0043;
 
 // MAX_HASH_SIZE represents the size of the longest hash digest supported (sha512)
 pub const MAX_HASH_SIZE: usize = 64;
@@ -195,7 +184,7 @@ pub struct TpmsPcrSelection {
 impl TpmsPcrSelection {
     pub fn new() -> Self {
         TpmsPcrSelection {
-            hash: 0,
+            hash: TpmAlgId::Error,
             sizeof_select: 0,
             pcr_select: [0; TPM2_PCR_SELECT_MAX],
         }
@@ -734,7 +723,7 @@ impl TpmtSensitive {
         TpmtSensitive {
             // TPM_ALG_KEYEDHASH indicates a symmetric data representing
             // a sealed data object.
-            sensitive_type: TPM_ALG_KEYEDHASH,
+            sensitive_type: TpmAlgId::KeyedHash,
             // Empty Auth value indicates that there is no auth associated
             // with this sensitive object
             auth_value: Tpm2bAuth {
@@ -858,7 +847,7 @@ impl TpmuAsymScheme {
     pub fn new_rsassa_tpmu_asym_scheme() -> Self {
         return TpmuAsymScheme {
             rsassa: TpmsSigSchemeRsassa {
-                hash_alg: TPM_ALG_RSASSA,
+                hash_alg: TpmAlgId::RSASSA,
             },
         };
     }
@@ -923,7 +912,7 @@ impl inout::Tpm2StructOut for TpmtKeyedHashScheme {
 impl TpmtKeyedHashScheme {
     pub fn new_keyed_hash_scheme() -> Self {
         TpmtKeyedHashScheme {
-            scheme: TPM_ALG_NULL,
+            scheme: TpmAlgId::Null,
             // default `details` value, not relevant if scheme == TPM_ALG_NULL
             details: TpmuSchemeKeyedHash::Null,
         }
@@ -973,7 +962,10 @@ enum TpmuSymKeyBits {
 impl inout::Tpm2StructOut for TpmuSymKeyBits {
     fn pack(&self, buff: &mut dyn inout::RwBytes) {
         match self {
-            TpmuSymKeyBits::Sym(value) | TpmuSymKeyBits::Xor(value) => {
+            TpmuSymKeyBits::Sym(value) => {
+                value.pack(buff);
+            }
+            TpmuSymKeyBits::Xor(value) => {
                 value.pack(buff);
             }
             TpmuSymKeyBits::Null => {}
@@ -1025,16 +1017,16 @@ pub struct TpmtSymDefObject {
 impl TpmtSymDefObject {
     pub fn new_aes_128() -> Self {
         TpmtSymDefObject {
-            algorithm: TPM_ALG_AES,
+            algorithm: TpmAlgId::AES,
             key_bits: TpmuSymKeyBits::Sym(128),
-            mode: TpmuSymMode::Sym(TPM_ALG_CFB),
+            mode: TpmuSymMode::Sym(TpmAlgId::CFB),
             details: TpmuSymDetails::Sym,
         }
     }
 
     pub fn new_null() -> Self {
         TpmtSymDefObject {
-            algorithm: TPM_ALG_NULL,
+            algorithm: TpmAlgId::Null,
             key_bits: TpmuSymKeyBits::Null,
             mode: TpmuSymMode::Null,
             details: TpmuSymDetails::Null,
@@ -1044,7 +1036,7 @@ impl TpmtSymDefObject {
 
 impl inout::Tpm2StructOut for TpmtSymDefObject {
     fn pack(&self, buff: &mut dyn inout::RwBytes) {
-        if self.algorithm == TPM_ALG_NULL {
+        if self.algorithm == TpmAlgId::Null {
             self.algorithm.pack(buff);
         } else {
             panic!("not supported");
@@ -1063,7 +1055,7 @@ pub struct TpmtSymDef {
 impl TpmtSymDef {
     pub fn new_null() -> Self {
         TpmtSymDef {
-            algorithm: TPM_ALG_NULL,
+            algorithm: TpmAlgId::Null,
             key_bits: TpmuSymKeyBits::Null,
             mode: TpmuSymMode::Null,
             details: TpmuSymDetails::Null,
@@ -1090,7 +1082,7 @@ pub struct TpmtRsaScheme {
 impl TpmtRsaScheme {
     pub fn new_tpmt_rsa_scheme() -> Self {
         TpmtRsaScheme {
-            scheme: TPM_ALG_RSA,
+            scheme: TpmAlgId::RSA,
             details: TpmuAsymScheme::new_rsassa_tpmu_asym_scheme(),
         }
     }
@@ -1240,8 +1232,8 @@ impl TpmtPublic {
     // Creates a TPMT_PUBLIC data structure for RSA key (type == TPM_ALG_RSA)
     pub fn new_rsa(key: &rsa::RsaPublicKey) -> Self {
         TpmtPublic {
-            type_alg: TPM_ALG_RSA,
-            name_alg: TPM_ALG_SHA256,
+            type_alg: TpmAlgId::RSA,
+            name_alg: TpmAlgId::SHA256,
             object_attributes: new_default_ek_attributes(),
             auth_policy: new_default_ek_auth_policy(),
             parameters: TpmuPublicParms::new_rsa_public_params(key),
@@ -1275,8 +1267,8 @@ impl TpmtPublic {
         let unique = hasher.finalize();
 
         TpmtPublic {
-            type_alg: TPM_ALG_KEYEDHASH,
-            name_alg: TPM_ALG_SHA256,
+            type_alg: TpmAlgId::KeyedHash,
+            name_alg: TpmAlgId::SHA256,
             // Clear all attributes for Data object
             object_attributes: new_default_ek_attributes(),
             // Empty auth policy
