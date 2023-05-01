@@ -1,6 +1,8 @@
 use crate::tpm2::errors;
 use crate::tpm2::serialization::inout;
 use crate::tpm2::types::tcg;
+use crate::tpm2::types::constants::TpmRc;
+
 use std::result;
 
 #[derive(Debug, Copy, Clone)]
@@ -14,7 +16,7 @@ pub struct CommandHeader {
 pub struct ResponseHeader {
     pub tag: tcg::TpmiStCommandTag,
     pub response_size: u32,
-    pub response_code: tcg::TpmRc,
+    pub response_code: TpmRc,
 }
 
 impl ResponseHeader {
@@ -22,7 +24,7 @@ impl ResponseHeader {
         ResponseHeader {
             tag: 0,
             response_size: 0,
-            response_code: 0,
+            response_code: TpmRc::Success,
         }
     }
 }
