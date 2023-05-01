@@ -24,7 +24,6 @@ use rsa::{Oaep, PublicKey, PublicKeyParts};
 // Types
 pub type TpmiStCommandTag = u16;
 pub type TpmCc = u32;
-pub type TpmRc = u32;
 pub type TpmSu = u16;
 pub type TpmaObject = u32;
 pub type TpmaSession = u8;
