@@ -1,7 +1,7 @@
 use crate::tpm2::errors;
 use crate::tpm2::serialization::inout;
 use crate::tpm2::serialization::inout::{RwBytes, Tpm2StructOut};
-use crate::tpm2::types::constants::TpmAlgId;
+use crate::tpm2::types::constants::{TpmAlgId, TpmSt};
 
 use std::{mem, result, fmt, str};
 
@@ -81,8 +81,8 @@ pub const TPM_SU_CLEAR: TpmSu = 0x0000;
 pub const TPM_SU_STATE: TpmSu = 0x0001;
 
 // Command tags
-pub const TPM_ST_NO_SESSION: TpmiStCommandTag = 0x8001;
-pub const TPM_ST_SESSIONS: TpmiStCommandTag = 0x8002;
+pub const TPM_ST_NO_SESSION: TpmiStCommandTag = TpmSt::NoSessions as u16;
+pub const TPM_ST_SESSIONS: TpmiStCommandTag = TpmSt::Sessions as u16;
 
 // MAX_HASH_SIZE represents the size of the longest hash digest supported (sha512)
 pub const MAX_HASH_SIZE: usize = 64;
